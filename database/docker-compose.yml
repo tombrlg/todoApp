@@ -12,6 +12,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - /Users/mzili/db:/data/db
-      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      - /home/tom/todo/mongo:/data/db
+      - /home/tom/todo/mongo/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+
 
