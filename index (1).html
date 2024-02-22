@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>To-Do Liste</title>
+    <style>
+        /* Hier kommt der CSS-Code */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: #50b3a2;
+            color: white;
+            text-align: center;
+            padding: 1em 0;
+        }
+        #container {
+            margin: auto;
+            width: 50%;
+            overflow: auto;
+        }
+        #taskInput {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        #taskInput input {
+            flex: 10;
+            padding: 10px;
+        }
+        #taskInput button {
+            flex: 2;
+            background: #50b3a2;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+        }
+        #taskList {
+            list-style: none;
+            padding: 0;
+        }
+        #taskList li {
+            background: #f4f4f4;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            padding: 10px;
+            cursor: pointer;
+        }
+        #taskList li:hover {
+            background: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>To-Do Liste</h1>
+    </header>
+    <div id="container">
+        <div id="taskInput">
+            <input type="text" id="task" placeholder="Neue Aufgabe hinzufügen...">
+            <button onclick="addTask()">Hinzufügen</button>
+        </div>
+        <ul id="taskList"></ul>
+    </div>
+    <script>
+        // Basis-URL des Backends
+        const baseUrl = 'http://localhost:3000';
+    
+        // Funktion zum Hinzufügen einer Aufgabe
+        async function addTask() {
+            const taskInput = document.getElementById('task');
+            const taskValue = taskInput.value.trim();
+            
+            if(taskValue === '') return alert('Bitte geben Sie eine Aufgabe ein!');
+            
+            try {
+                const response = await fetch(`${baseUrl}/todos`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ task: taskValue })
+                });
+                
+                const newTask = await response.json();
+                displayTask(newTask);
+                taskInput.value = '';
+            } catch (error) {
+                console.error('Fehler beim Hinzufügen der Aufgabe:', error);
+            }
+        }
+    
+        // Funktion zum Anzeigen einer Aufgabe
+        function displayTask(task) {
+            const taskList = document.getElementById('taskList');
+            const li = document.createElement('li');
+            li.textContent = task.task;
+            li.setAttribute('data-id', task._id);
+            taskList.appendChild(li);
+        }
+    
+        // Funktion zum Laden aller Aufgaben beim Start der Anwendung
+        async function loadTasks() {
+            try {
+                const response = await fetch(`${baseUrl}/todos`);
+                const tasks = await response.json();
+                tasks.forEach(displayTask);
+            } catch (error) {
+                console.error('Fehler beim Laden der Aufgaben:', error);
+            }
+        }
+    
+        // Event Listener zum Löschen einer Aufgabe
+        document.getElementById('taskList').addEventListener('click', async function(e) {
+            const taskId = e.target.getAttribute('data-id');
+            if(!taskId) return;
+            
+            if(confirm('Sind Sie sicher, dass Sie diese Aufgabe löschen möchten?')) {
+                try {
+                    await fetch(`${baseUrl}/todos/${taskId}`, { method: 'DELETE' });
+                    e.target.remove();
+                } catch (error) {
+                    console.error('Fehler beim Löschen der Aufgabe:', error);
+                }
+            }
+        });
+    
+        // Laden aller Aufgaben beim Start der Anwendung
+        loadTasks();
+    </script>    
+</body>
+</html>
